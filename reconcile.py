@@ -1,5 +1,8 @@
 import openpyxl
 import datetime
+from rapidfuzz import fuzz
+
+FUZZY_THRESHOLD = 75  # adjust if too strict or too loose
 
 filename = "Bank Rec_2.xlsx"
 wb = openpyxl.load_workbook(filename)
@@ -68,7 +71,7 @@ for bank_row in range(2, bank_sheet.max_row + 1):
             break
 
         if bank_row not in reconciled_bank_row_list1:
-            if sage_trans_desc_cell and bank_trans_desc_cell in sage_trans_desc_cell:
+            if sage_trans_desc_cell and fuzz.token_set_ratio(bank_trans_desc_cell, sage_trans_desc_cell) >= FUZZY_THRESHOLD:
                 if bank_price_cell == sage_price_cell and bank_date == sage_date:
                     reconciled_bank_row_list1.append(bank_row)
 
@@ -93,7 +96,7 @@ for bank_row in range(2, bank_sheet.max_row + 1):
                     total_sage_price = 0
                     for row3 in range(2, sage_sheet.max_row + 1):
                         sage_trans_desc_cell2 = sage_sheet.cell(row3, column=5 if payment_type == "paid in" else 6).value
-                        if sage_trans_desc_cell2 and bank_trans_desc_cell in sage_trans_desc_cell2:
+                        if sage_trans_desc_cell2 and fuzz.token_set_ratio(bank_trans_desc_cell, sage_trans_desc_cell2) >= FUZZY_THRESHOLD:
                             col_7_3 = sage_sheet.cell(row3, column=7).value
                             col_8_3 = sage_sheet.cell(row3, column=8).value
                             if isinstance(col_7_3, (float, int)) and col_7_3 is not None and col_7_3 > 0:
